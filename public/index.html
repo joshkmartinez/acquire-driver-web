@@ -1,4 +1,39 @@
-<video width="320" height="240" controls>
-    <source src="big-buck-bunny_trailer.webm" type="video/webm">
+<!--- The simple way to serve the video that works w/ range requests
+    <video width="640" height="480" controls>
+    <source src="/webm" type="video/webm">
     Your browser does not support the video tag.
 </video>
+--->
+
+<video id="video" controls></video>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+    if (Hls.isSupported()) {
+        const video = document.getElementById('video');
+        const hls = new Hls({debug:true});
+        hls.loadSource('/playlist.m3u8');
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            console.log("Manifest Parsed: starting playback");
+            video.play();
+        });
+        hls.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+            switch(data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.error("Network Error:", data);
+                    break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.error("Media Error:", data);
+                    break;
+                default:
+                    console.error("Unknown Error:", data);
+                    break;
+            }
+        }
+});
+
+    }
+</script>
+
