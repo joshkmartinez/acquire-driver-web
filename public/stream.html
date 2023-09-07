@@ -1,0 +1,40 @@
+<video width="640" height="480" controls loop></video>
+
+<script>
+    const video = document.querySelector('video');
+    const mediaSource = new MediaSource();
+    video.src = URL.createObjectURL(mediaSource);
+
+    let sourceBuffer;
+    let nextFetchStart = 0;
+
+    mediaSource.addEventListener('sourceopen', () => {
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+        fetchNextSegment();
+    });
+
+    function fetchNextSegment() {
+        fetch(`/stream?range=bytes=${nextFetchStart}-`, {
+            headers: {
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+                'Range': `bytes=${nextFetchStart}-`
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ;(');
+            }
+            return response.arrayBuffer();
+        }).then(data => {
+            sourceBuffer.appendBuffer(data);
+            nextFetchStart += data.byteLength;
+
+            // Monitor for source buffer update end and fetch the next segment
+            sourceBuffer.addEventListener('updateend', function _updateListener() {
+                sourceBuffer.removeEventListener('updateend', _updateListener);
+                fetchNextSegment();
+            });
+        }).catch(err => {
+            console.error('Fetch Error:', err);
+        });
+    }
+</script>
