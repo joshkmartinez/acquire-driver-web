@@ -532,6 +532,8 @@ int main()
 
                 res.set_content(std::string(segment.begin(), segment.end()), "video/MP2T"); });
 
+    // Client is basic.html
+    // Generates a XOR texture noise stream and serves w/ range headers
     svr.Get("/webm", [](const httplib::Request &req, httplib::Response &res)
             {
                 const int width = 640;
@@ -648,6 +650,8 @@ int main()
                 res.set_content(reinterpret_cast<const char *>(responseData.data()), responseData.size(), "video/webm"); });
 
     /*
+    // Serve the trailer w/ range requests
+    // A client <video/> just has to be pointed at this endpoint
     svr.Get("/video/big-buck-bunny_trailer.webm", [&](const httplib::Request &req, httplib::Response &res)
             {
                 std::string range = req.get_header_value("Range");
